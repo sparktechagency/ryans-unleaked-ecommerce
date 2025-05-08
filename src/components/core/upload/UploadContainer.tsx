@@ -1,0 +1,30 @@
+import CommonTopBanner from "@/components/shared/CommonTopBanner"
+import topBannerImg from "@/assets/images/home/hero-bg.png"
+import UploadForm from "./UploadForm"
+
+export default function UploadContainer() {
+  return (
+    <div>
+      <CommonTopBanner
+        backgroundImage={topBannerImg}
+        heading="A new chapter of creativity begins!"
+        breadcrumbItems={[
+          {
+            key: "top-banner-breadcrumb-home",
+            label: "Home",
+            href: "/"
+          },
+          {
+            key: "top-banner-breadcrumb-upload-art",
+            label: "Upload Art"
+          }
+        ]}
+        className="h-[45dvh] rounded-[30px] [&_img]:rounded-[30px]"
+      />
+
+      <div className="mt-[45px] md:mt-[60px] xl:mt-[80px]">
+        <UploadForm />
+      </div>
+    </div>
+  )
+}
