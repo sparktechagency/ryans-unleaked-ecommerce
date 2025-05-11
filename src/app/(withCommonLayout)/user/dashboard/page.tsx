@@ -5,7 +5,7 @@ import artistImg from "@/assets/images/artists/Rectangle 42522.png"
 import advertImg from "@/assets/images/advert/Frame 2147226437.png"
 
 export default function UserDashboard() {
-  const userRole = sessionStorage.getItem("userRole")
+  const userRole = "buyer"
 
   return (
     <div>
