@@ -40,7 +40,7 @@ export default function ArtistsContainer() {
           },
           {
             key: "top-banner-breadcrumb-artists",
-            label: "Arts Details"
+            label: "Artists"
           }
         ]}
         className="h-[45dvh] rounded-[30px] [&_img]:rounded-[30px]"

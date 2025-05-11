@@ -1,10 +1,19 @@
 import CustomAvatar from "@/components/custom/CustomAvatar"
 import { Button } from "@/components/ui/button"
 import { ADVERT } from "@/constants/advert.constants"
+import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
 
-export default function AdvertCard() {
+interface AdvertCardProps {
+  cardImgClassName?: string
+  titleClassName?: string
+}
+
+export default function AdvertCard({
+  cardImgClassName,
+  titleClassName
+}: AdvertCardProps) {
   const advert = ADVERT
 
   return (
@@ -22,7 +31,12 @@ export default function AdvertCard() {
           </div>
         </div>
 
-        <h5 className="text-primary-foreground mt-4 mb-6 text-xl font-medium">
+        <h5
+          className={cn(
+            "text-primary-foreground mt-4 mb-6 text-lg font-medium xl:text-xl",
+            titleClassName
+          )}
+        >
           {advert?.title}
         </h5>
 
@@ -30,12 +44,15 @@ export default function AdvertCard() {
           <Image
             src={advert?.image}
             alt={advert?.title}
-            className="h-[500px] w-full rounded-[16px] object-cover object-center transition-all duration-300 hover:scale-105"
+            className={cn(
+              "h-[500px] w-full rounded-[16px] object-cover object-center transition-all duration-300 hover:scale-105",
+              cardImgClassName
+            )}
             height={800}
             width={800}
           />
 
-          <div className="bg-primary text-primary-foreground absolute top-0 right-0 flex h-[60px] w-[120px] items-center justify-center [border-radius:0px_45px_0px_150px] text-2xl font-bold">
+          <div className="bg-primary text-primary-foreground absolute top-0 right-0 flex h-[60px] w-[120px] items-center justify-center rounded-tr-xl rounded-bl-full text-2xl font-bold">
             <span>${advert?.price}</span>
           </div>
         </div>
@@ -46,7 +63,7 @@ export default function AdvertCard() {
           Add to cart
         </Button>
         <Button variant="default" className="flex-1" size="lg">
-          Buy Now
+          <Link href="/checkout">Buy Now</Link>
         </Button>
       </div>
     </div>

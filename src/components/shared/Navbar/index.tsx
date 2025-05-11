@@ -3,10 +3,12 @@
 import ResponsiveContainer from "@/components/custom/ResponsiveContainer/ResponsiveContainer"
 import Image from "next/image"
 import Link from "next/link"
-import logo from "@/assets/logos/logo.svg"
+import logo from "@/assets/logos/logo.png"
 import { Input } from "@/components/ui/input"
 import {
   ChevronDown,
+  History,
+  ImageIcon,
   LayoutDashboard,
   LogOut,
   Repeat2,
@@ -15,7 +17,7 @@ import {
   ShoppingCart
 } from "lucide-react"
 import NavLink from "./NavLink"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
@@ -25,7 +27,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import CustomAvatar from "@/components/custom/CustomAvatar"
 import userAvatar from "@/assets/images/user/dummy-user.jpg"
+import artistAvatar from "@/assets/images/artists/Rectangle 42522.png"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import MobileNavbar from "./MobileNavbar"
 
 const NAVBAR_LINKS = [
   {
@@ -63,19 +68,29 @@ const NAVBAR_LINKS = [
 ]
 
 export default function Navbar() {
-  const userId = true
-
+  const [userRole, setUserRole] = useState("buyer")
+  const router = useRouter()
   const pathname = usePathname()
+
+  // Set user role in session storage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("userRole", userRole)
+
+      router.refresh()
+    }
+  }, [userRole, router])
+
   return (
     <ResponsiveContainer className="py-4">
-      <div className="flex items-center justify-between text-center lg:gap-x-7 2xl:gap-x-9">
-        <Link href="/" className="block w-[130px]">
+      <div className="hidden items-center justify-between text-center lg:flex lg:gap-x-7 2xl:gap-x-9">
+        <Link href="/" className="block w-auto">
           <Image
             src={logo}
             alt="logo"
             height={500}
             width={500}
-            className="size-[50px]"
+            className="h-[45px] w-auto object-contain"
           />
         </Link>
 
@@ -143,37 +158,51 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-x-6">
-            {userId && (
-              <button type="button" className="text-primary">
+            {userRole === "buyer" ? (
+              <button
+                type="button"
+                className="text-primary"
+                onClick={() => setUserRole("seller")}
+              >
                 Switch to Selling
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="text-primary"
+                onClick={() => setUserRole("buyer")}
+              >
+                Switch to Buying
               </button>
             )}
 
-            <Link href="/cart" className="relative">
-              <ShoppingCart
-                className={`${pathname === "/cart" ? "text-primary-orange" : "text-black"} text-2xl`}
-              />
+            {userRole === "buyer" && (
+              <Link href="/cart" className="relative">
+                <ShoppingCart
+                  className={`${pathname === "/cart" ? "text-primary-orange" : "text-black"} text-2xl`}
+                />
 
-              <Badge className="bg-primary absolute -top-2 -right-[10px] flex aspect-square size-5 items-center justify-center rounded-full text-white">
-                <p className="text-xs">9+</p>
-              </Badge>
-            </Link>
+                <Badge className="bg-primary absolute -top-2 -right-[10px] flex aspect-square size-5 items-center justify-center rounded-full text-white">
+                  <p className="text-xs">9+</p>
+                </Badge>
+              </Link>
+            )}
 
-            {userId ? (
-              <UserProfileDropdown />
+            {userRole === "buyer" ? (
+              <BuyerProfileDropdown />
             ) : (
-              <Button variant="default" asChild>
-                <Link href="/login">Log In</Link>
-              </Button>
+              <SellerProfileDropdown />
             )}
           </div>
         </div>
       </div>
+
+      <MobileNavbar />
     </ResponsiveContainer>
   )
 }
 
-const UserProfileDropdown = () => {
+const BuyerProfileDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="!border-0 !outline-0">
@@ -199,6 +228,56 @@ const UserProfileDropdown = () => {
         <DropdownMenuItem asChild>
           <Link href="/user/cart" className="flex items-center gap-x-2">
             <ShoppingCart size={15} /> Shopping Cart
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link href="/user/settings" className="flex items-center gap-x-2">
+            <Settings size={15} />
+            Settings
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <button
+            className="flex w-full items-center gap-x-2"
+            // onClick={handleLogout}
+          >
+            <LogOut size={15} />
+            Logout
+          </button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+const SellerProfileDropdown = () => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="!border-0 !outline-0">
+        <CustomAvatar name="Uzzal Bhowmik" img={artistAvatar} size={36} />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-48" align="end" sideOffset={10}>
+        <DropdownMenuItem asChild>
+          <Link href="/user/dashboard" className="flex items-center gap-x-2">
+            <LayoutDashboard size={15} /> Dashboard
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link href="/user/feed" className="flex items-center gap-x-2">
+            <ImageIcon size={15} /> My Feed
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link
+            href="/user/selling-history"
+            className="flex items-center gap-x-2"
+          >
+            <History size={15} /> Selling History
           </Link>
         </DropdownMenuItem>
 

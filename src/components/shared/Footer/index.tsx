@@ -1,5 +1,5 @@
 import Image from "next/image"
-import logo from "@/assets/logos/logo.svg"
+import logo from "@/assets/logos/logo.png"
 import Link from "next/link"
 
 export default function Footer() {
@@ -10,15 +10,15 @@ export default function Footer() {
           {/* Logo and Description */}
           <div className="md:col-span-1">
             <div className="flex flex-col items-center md:items-start">
-              <div className="mb-4">
+              <Link href="/" className="mb-4">
                 <Image
                   src={logo}
-                  alt="Logo of Unleak'd"
-                  width={50}
-                  height={50}
-                  className="text-cyan-300"
+                  alt="logo"
+                  height={500}
+                  width={500}
+                  className="h-[45px] w-auto object-contain"
                 />
-              </div>
+              </Link>
               <p className="text-center text-sm md:text-left">
                 We are a creative platform dedicated to showcasing original
                 artwork from talented artists around the world. From hand-drawn
