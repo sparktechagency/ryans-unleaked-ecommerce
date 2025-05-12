@@ -4,6 +4,7 @@ import { ADVERT } from "@/constants/advert.constants"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
+import { toast } from "sonner"
 
 interface AdvertCardProps {
   cardImgClassName?: string
@@ -59,7 +60,12 @@ export default function AdvertCard({
       </Link>
 
       <div className="mt-8 flex items-center justify-between gap-6">
-        <Button variant="outline-primary" className="flex-1" size="lg">
+        <Button
+          variant="outline-primary"
+          className="flex-1"
+          size="lg"
+          onClick={() => toast.success("Added to cart")}
+        >
           Add to cart
         </Button>
         <Button variant="default" className="flex-1" size="lg">
