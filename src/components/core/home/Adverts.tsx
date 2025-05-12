@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 
 export default function Adverts() {
   return (
-    <ResponsiveContainer className="my-[60px] flex flex-col items-start justify-between gap-9 md:flex-row xl:px-32">
+    <ResponsiveContainer className="my-12 flex flex-col items-start justify-between gap-9 md:flex-row lg:my-[60px] xl:px-32">
       <HomeAdvertsFilter />
 
       <div className="flex-1 space-y-[50px]">
@@ -61,7 +61,7 @@ const HomeAdvertsFilter = () => {
   return (
     <>
       {/* Mobile sticky nav */}
-      <div className="block md:hidden" ref={categoryRef}>
+      <div className="block max-w-dvw md:hidden" ref={categoryRef}>
         <div
           className={`${
             isSticky

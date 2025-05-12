@@ -85,7 +85,7 @@ export default function UserDashboardSidebar() {
   console.log({ sidebarItems })
 
   return (
-    <div className="rounded-2xl border bg-white shadow lg:w-1/4">
+    <div className="w-full rounded-2xl border bg-white shadow lg:w-1/4">
       <div className="border-b border-gray-200 p-4">
         <h2 className="text-xl font-medium">Navigation</h2>
       </div>

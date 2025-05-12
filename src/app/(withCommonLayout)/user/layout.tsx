@@ -29,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
         className="h-[45dvh] rounded-[30px] [&_img]:rounded-[30px]"
       />
 
-      <ResponsiveContainer className="mt-10 flex items-start gap-x-10">
+      <ResponsiveContainer className="mt-10 flex flex-col items-start gap-10 lg:flex-row">
         <UserDashboardSidebar />
         <div className="flex-1">{children}</div>
       </ResponsiveContainer>
