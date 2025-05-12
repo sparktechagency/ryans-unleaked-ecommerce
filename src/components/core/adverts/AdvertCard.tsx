@@ -1,3 +1,4 @@
+"use client"
 import CustomAvatar from "@/components/custom/CustomAvatar"
 import { Button } from "@/components/ui/button"
 import { ADVERT } from "@/constants/advert.constants"
