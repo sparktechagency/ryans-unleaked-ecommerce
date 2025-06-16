@@ -88,7 +88,7 @@ const HomeAdvertsFilter = () => {
       </div>
 
       {/* Desktop version hidden on mobile */}
-      <div className="hidden flex-col gap-6 md:flex md:w-1/4">
+      <div className="hidden flex-col gap-6 md:flex md:w-1/4 sticky top-6 left-0">
         {/* Categories */}
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
           <div className="border-b border-gray-200 px-6 py-4">
