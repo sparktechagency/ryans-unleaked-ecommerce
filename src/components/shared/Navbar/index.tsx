@@ -3,7 +3,7 @@
 import ResponsiveContainer from "@/components/custom/ResponsiveContainer/ResponsiveContainer"
 import Image from "next/image"
 import Link from "next/link"
-import logo from "@/assets/logos/logo.png"
+import logo from "@/assets/logos/logo.jpg"
 import { Input } from "@/components/ui/input"
 import {
   ChevronDown,
@@ -17,7 +17,7 @@ import {
   ShoppingCart
 } from "lucide-react"
 import NavLink from "./NavLink"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
@@ -26,11 +26,15 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import CustomAvatar from "@/components/custom/CustomAvatar"
-import userAvatar from "@/assets/images/user/dummy-user.jpg"
-import artistAvatar from "@/assets/images/artists/Rectangle 42522.png"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
 import MobileNavbar from "./MobileNavbar"
+import { useAppDispatch, useAppSelector } from "@/redux/hooks"
+import { logOut, selectUser } from "@/redux/slices/authSlice"
+import { toast } from "sonner"
+import { useSelector } from "react-redux"
+import { RootState } from "@/redux/store"
+import { useGetUserProfileQuery } from "@/redux/apis/userApi"
+import ThemeToggle from "./ThemeToggle"
 
 const NAVBAR_LINKS = [
   {
@@ -38,12 +42,12 @@ const NAVBAR_LINKS = [
     route: "/"
   },
   {
-    label: "Upload",
-    route: "/upload"
-  },
-  {
     label: "Artists",
     route: "/artists"
+  },
+  {
+    label: "Upload",
+    route: "/upload"
   },
   {
     label: "Featured",
@@ -68,18 +72,13 @@ const NAVBAR_LINKS = [
 ]
 
 export default function Navbar() {
-  const [userRole, setUserRole] = useState("buyer")
-  const router = useRouter()
+  const user = useAppSelector(selectUser)
+  const carts = useSelector((state: RootState) => state.cart.items)
+  const totalCartItems =
+    carts?.reduce((acc, group) => acc + group?.items?.length, 0) || 0
   const pathname = usePathname()
-
+  const userRole = user?.role
   // Set user role in session storage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("userRole", userRole)
-
-      router.refresh()
-    }
-  }, [userRole, router])
 
   return (
     <ResponsiveContainer className="py-4">
@@ -158,40 +157,50 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-x-6">
-            {userRole === "buyer" ? (
-              <button
-                type="button"
-                className="text-primary"
-                onClick={() => setUserRole("seller")}
-              >
-                Switch to Selling
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="text-primary"
-                onClick={() => setUserRole("buyer")}
-              >
-                Switch to Buying
-              </button>
+            {user && (
+              <>
+                {/* {userRole === "buyer" ? (
+                  <button
+                    type="button"
+                    className="text-primary"
+                    onClick={() => setUserRole("seller")}
+                  >
+                    Switch to Selling
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-primary"
+                    onClick={() => setUserRole("buyer")}
+                  >
+                    Switch to Buying
+                  </button>
+                )} */}
+              </>
             )}
 
-            {userRole === "buyer" && (
+            {userRole !== "seller" && (
               <Link href="/cart" className="relative">
                 <ShoppingCart
                   className={`${pathname === "/cart" ? "text-primary-orange" : "text-black"} text-2xl`}
                 />
 
                 <Badge className="bg-primary absolute -top-2 -right-[10px] flex aspect-square size-5 items-center justify-center rounded-full text-white">
-                  <p className="text-xs">9+</p>
+                  <p className="text-xs">{totalCartItems}</p>
                 </Badge>
               </Link>
             )}
-
-            {userRole === "buyer" ? (
-              <BuyerProfileDropdown />
+            <ThemeToggle />
+            {user ? (
+              userRole === "seller" ? (
+                <SellerProfileDropdown />
+              ) : (
+                <BuyerProfileDropdown />
+              )
             ) : (
-              <SellerProfileDropdown />
+              <Link href={"/auth/sign-in"}>
+                <Button>Sign In</Button>
+              </Link>
             )}
           </div>
         </div>
@@ -203,10 +212,19 @@ export default function Navbar() {
 }
 
 const BuyerProfileDropdown = () => {
+  const dispatch = useAppDispatch()
+  const handleLogout = () => {
+    dispatch(logOut())
+    toast.success("Logged out successfully")
+  }
+
+  const { data } = useGetUserProfileQuery("")
+  const user = data?.data
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="!border-0 !outline-0">
-        <CustomAvatar name="Uzzal Bhowmik" img={userAvatar} size={36} />
+        <CustomAvatar name="Uzzal Bhowmik" img={user?.profile} size={36} />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-48" align="end" sideOffset={10}>
@@ -226,7 +244,7 @@ const BuyerProfileDropdown = () => {
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link href="/user/cart" className="flex items-center gap-x-2">
+          <Link href="/cart" className="flex items-center gap-x-2">
             <ShoppingCart size={15} /> Shopping Cart
           </Link>
         </DropdownMenuItem>
@@ -240,8 +258,8 @@ const BuyerProfileDropdown = () => {
 
         <DropdownMenuItem asChild>
           <button
+            onClick={handleLogout}
             className="flex w-full items-center gap-x-2"
-            // onClick={handleLogout}
           >
             <LogOut size={15} />
             Logout
@@ -253,10 +271,19 @@ const BuyerProfileDropdown = () => {
 }
 
 const SellerProfileDropdown = () => {
+  const dispatch = useAppDispatch()
+  const handleLogout = () => {
+    dispatch(logOut())
+    toast.success("Logged out successfully")
+  }
+
+  const { data } = useGetUserProfileQuery("")
+  const user = data?.data
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="!border-0 !outline-0">
-        <CustomAvatar name="Uzzal Bhowmik" img={artistAvatar} size={36} />
+        <CustomAvatar name="Uzzal Bhowmik" img={user?.profile} size={36} />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-48" align="end" sideOffset={10}>
@@ -291,7 +318,7 @@ const SellerProfileDropdown = () => {
         <DropdownMenuItem asChild>
           <button
             className="flex w-full items-center gap-x-2"
-            // onClick={handleLogout}
+            onClick={handleLogout}
           >
             <LogOut size={15} />
             Logout

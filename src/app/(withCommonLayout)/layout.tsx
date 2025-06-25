@@ -10,7 +10,7 @@ export default function CommonLayout({ children }: CommonLayoutProps) {
   return (
     <div className="flex flex-col justify-between">
       <Navbar />
-      <main className="min-h-dvh flex-1">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   )

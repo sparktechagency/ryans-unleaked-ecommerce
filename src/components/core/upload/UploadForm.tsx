@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -6,59 +7,100 @@ import { Textarea } from "@/components/ui/textarea"
 import { Upload } from "lucide-react"
 import Image from "next/image"
 import { useRef, useState } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useGetCategoriesQuery } from "@/redux/apis/categoryApi"
+import { useAddProductMutation } from "@/redux/apis/productApi"
+import { toast } from "sonner"
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import handleMutation from "@/utils/handleMutation"
+
+const productSchema = z.object({
+  title: z.string().min(3, "Title is required"),
+  category: z.string().min(1, "Category is required"),
+  price: z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Invalid price")
+    .min(1, "Price is required"),
+  description: z.string().min(5, "Description is required")
+})
+
+type ProductFormType = z.infer<typeof productSchema>
 
 export default function UploadForm() {
-  const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
-  const [price, setPrice] = useState("")
-  const [description, setDescription] = useState("")
+  const { data: categoriesData, isLoading: categoriesLoading } =
+    useGetCategoriesQuery("")
+  const categories = categoriesData?.data?.data || []
 
+  const [addProduct, { isLoading: isUploading }] = useAddProductMutation()
   const [image, setImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset
+  } = useForm<ProductFormType>({
+    resolver: zodResolver(productSchema)
+  })
+
+  const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     if (file) {
       setImage(file)
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string)
-      }
+      reader.onloadend = () => setPreviewUrl(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-  }
+  const onDragOver = (e: React.DragEvent) => e.preventDefault()
 
-  const handleDrop = (e: React.DragEvent) => {
+  const onDrop = (e: React.DragEvent) => {
     e.preventDefault()
     const file = e.dataTransfer.files?.[0] || null
     if (file) {
       setImage(file)
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string)
-      }
+      reader.onloadend = () => setPreviewUrl(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click()
-  }
+  const onUploadClick = () => fileInputRef.current?.click()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Handle form submission
-    console.log({ title, category, price, description, image })
+  const onSubmit = async (data: ProductFormType) => {
+    if (!image) {
+      toast.error("Please upload an image")
+      return
+    }
+
+    const formData = new FormData()
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    data.price = Number(data.price)
+    formData.append("data", JSON.stringify(data))
+    formData.append("image", image)
+
+    handleMutation(formData, addProduct, "Uploading product...", () => {
+      reset()
+    })
   }
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       className="mx-auto max-w-full space-y-6 px-10 md:max-w-3/4 lg:px-0 xl:max-w-1/2"
     >
       <div className="space-y-2">
@@ -70,12 +112,13 @@ export default function UploadForm() {
         </label>
         <Input
           id="title"
-          value={title}
-          placeholder="Creative and detail-oriented Drawing Artist with a passion for visual storytelling through hand-drawn and digital illustrations."
-          onChange={(e) => setTitle(e.target.value)}
+          {...register("title")}
+          placeholder="Creative and detail-oriented Drawing Artist..."
           className="w-full bg-gray-50"
-          required
         />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -86,14 +129,37 @@ export default function UploadForm() {
           >
             Categories
           </label>
-          <Input
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="Painting"
-            className="w-full bg-gray-50"
-            required
-          />
+          {categoriesLoading ? (
+            <p>Loading categories...</p>
+          ) : (
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
+                  defaultValue=""
+                >
+                  <SelectTrigger className="w-full bg-gray-50">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat: any) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          )}
+          {errors.category && (
+            <p className="mt-1 text-sm text-red-500">
+              {errors.category.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -105,15 +171,14 @@ export default function UploadForm() {
           </label>
           <Input
             id="price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            {...register("price")}
             className="w-full bg-gray-50"
-            required
-            type="text"
             inputMode="numeric"
-            pattern="[0-9]*"
             placeholder="$120"
           />
+          {errors.price && (
+            <p className="mt-1 text-sm text-red-500">{errors.price.message}</p>
+          )}
         </div>
       </div>
 
@@ -126,12 +191,15 @@ export default function UploadForm() {
         </label>
         <Textarea
           id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          {...register("description")}
           className="min-h-[200px] w-full bg-gray-50"
-          placeholder="We are a creative platform dedicated to showcasing original artwork from talented artists around the world. From hand-drawn sketches and digital illustrations to paintings, animations, and mixed media, our goal is to connect art lovers with meaningful visual experiences.\n\nWhether you're here to discover new artists, purchase one-of-a-kind pieces, or share your own creations, our space is built to celebrate creativity in all its forms. We believe in the power of art to inspire, communicate, and bring people together."
-          required
+          placeholder="Write about your art..."
         />
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.description.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -140,14 +208,14 @@ export default function UploadForm() {
         </label>
         <div
           className="cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center"
-          onClick={handleUploadClick}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
+          onClick={onUploadClick}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
         >
           {previewUrl ? (
             <div className="relative mx-auto h-auto w-[350px]">
               <Image
-                src={previewUrl || "/placeholder.svg"}
+                src={previewUrl}
                 alt="Preview"
                 className="mx-auto max-h-full object-cover"
                 height={350}
@@ -159,27 +227,11 @@ export default function UploadForm() {
                   e.stopPropagation()
                   setImage(null)
                   setPreviewUrl(null)
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = ""
-                  }
+                  if (fileInputRef.current) fileInputRef.current.value = ""
                 }}
                 className="absolute top-2 right-2 rounded-full bg-white p-1.5 shadow-md transition-colors hover:bg-gray-100"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-600"
-                >
-                  <path d="M18 6 6 18"></path>
-                  <path d="m6 6 12 12"></path>
-                </svg>
+                ✕
               </button>
             </div>
           ) : (
@@ -197,7 +249,7 @@ export default function UploadForm() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={handleImageChange}
+            onChange={onImageChange}
             className="hidden"
           />
         </div>
@@ -206,8 +258,9 @@ export default function UploadForm() {
       <Button
         type="submit"
         className="h-12 w-full bg-amber-400 font-medium text-black hover:bg-amber-500"
+        disabled={isUploading}
       >
-        Upload Now
+        {isUploading ? "Uploading..." : "Upload Now"}
       </Button>
     </form>
   )

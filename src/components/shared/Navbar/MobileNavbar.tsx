@@ -5,13 +5,23 @@ import { Menu, Search, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import logo from "@/assets/logos/logo.png"
+import logo from "@/assets/logos/logo.jpg"
 import { Input } from "@/components/ui/input"
 import NavLink from "./NavLink"
+import { useAppDispatch, useAppSelector } from "@/redux/hooks"
+import { logOut, selectUser } from "@/redux/slices/authSlice"
+import { toast } from "sonner"
 
 export default function MobileNavbar({}) {
   const [hideMobileMenu, setHideMobileMenu] = useState(true)
   const [hideMobileSearchBar] = useState(true)
+  const user = useAppSelector(selectUser)
+
+  const dispatch = useAppDispatch()
+  const handleLogout = () => {
+    dispatch(logOut())
+    toast.success("Logged out successfully")
+  }
 
   return (
     <div className={cn("transition-all duration-300 ease-in-out lg:hidden")}>
@@ -166,9 +176,20 @@ export default function MobileNavbar({}) {
                 <NavLink route="/artists">Artists</NavLink>
               </li>
 
-              <li>
-                <NavLink route="#">Join Now</NavLink>
-              </li>
+              {user ? (
+                <>
+                  <li>
+                    <NavLink route="/user/dashboard">Profile</NavLink>
+                  </li>
+                  <li onClick={handleLogout}>
+                    <NavLink route="#">Logout</NavLink>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <NavLink route="/auth/sign-up">Login</NavLink>
+                </li>
+              )}
             </ul>
           </div>
         )}

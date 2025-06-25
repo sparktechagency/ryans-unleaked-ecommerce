@@ -13,7 +13,6 @@ interface NavLinkProps {
 
 export default function NavLink({ children, route }: NavLinkProps) {
   const pathname = usePathname()
-  console.log({ pathname, route })
 
   return (
     <Link

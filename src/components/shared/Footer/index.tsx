@@ -53,8 +53,8 @@ export default function Footer() {
             <h3 className="mb-4 text-lg font-medium">Account</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="hover:underline">
-                  Arts
+                <Link href="/artists" className="hover:underline">
+                  Artists
                 </Link>
               </li>
               <li>

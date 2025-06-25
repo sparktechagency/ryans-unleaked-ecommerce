@@ -19,7 +19,7 @@ export default function UploadContainer() {
             label: "Upload Art"
           }
         ]}
-        className="h-[45dvh] rounded-[30px] [&_img]:rounded-[30px]"
+        className="mt-2 !h-[40dvh] rounded-[30px] [&_img]:rounded-[30px]"
       />
 
       <div className="mt-[45px] md:mt-[60px] xl:mt-[80px]">

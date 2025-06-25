@@ -42,30 +42,16 @@ export default function CheckoutSuccessModal({
         </p>
 
         {/* Action buttons */}
-        <div className="grid w-full grid-cols-2 gap-4 pt-2">
-          <Button
-            variant="outline-primary"
-            onClick={() => {
-              router.push("/")
-              setOpen(false)
-            }}
-            size="lg"
-            className="shadow-none"
-          >
-            Back to Home
-          </Button>
-
-          <Button
-            variant="default"
-            size="lg"
-            className="shadow-none"
-            onClick={() => {
-              setOpen(false)
-            }}
-          >
-            Download Now
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            router.push("/")
+            setOpen(false)
+          }}
+          size="lg"
+          className="shadow-none"
+        >
+          Back to Home
+        </Button>
       </div>
     </ModalWrapper>
   )

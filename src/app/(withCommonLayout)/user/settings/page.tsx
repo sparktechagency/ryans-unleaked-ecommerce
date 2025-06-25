@@ -1,88 +1,78 @@
 "use client"
 
-import { Camera, Eye, EyeOff } from "lucide-react"
-import Image from "next/image"
+import { Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
-import artistImg from "@/assets/images/artists/Rectangle 42522.png"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import EditProfile from "./EditProfile"
+import { useChangePasswordMutation } from "@/redux/apis/authApi"
+import handleMutation from "@/utils/handleMutation"
+
+const passwordSchema = z
+  .object({
+    oldPassword: z.string().min(6, "Old password is required"),
+    newPassword: z
+      .string()
+      .min(6, "New password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Please confirm your password")
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"]
+  })
+
+type PasswordFormType = z.infer<typeof passwordSchema>
 
 export default function UserSettings() {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showOldPassword, setShowOldPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<PasswordFormType>({
+    resolver: zodResolver(passwordSchema)
+  })
+
+  const [changePassword, { isLoading }] = useChangePasswordMutation()
+
+  const onSubmit = (data: PasswordFormType) => {
+    handleMutation(data, changePassword, "Changing password...")
+  }
+
   return (
     <div className="mx-auto rounded-lg bg-white p-6 shadow-sm">
-      <div className="mb-6 flex flex-col gap-6 md:flex-row">
-        {/* Profile Image */}
-        <div className="relative mx-auto h-40 w-40 md:mx-0">
-          <div className="h-full w-full overflow-hidden rounded-full border border-gray-200">
-            <Image
-              src={artistImg}
-              alt="Profile"
-              width={160}
-              height={160}
-              className="aspect-square h-full w-full object-cover"
-            />
-          </div>
-          <div className="absolute right-2 bottom-2 rounded-full border border-gray-200 bg-white p-1.5">
-            <Camera size={18} className="text-gray-700" />
-          </div>
-        </div>
+      <EditProfile />
 
-        {/* Profile Info */}
-        <div className="flex-1 space-y-4">
-          <div className="rounded border border-gray-200 bg-gray-50 p-3">
-            <p>Muskan Tanaz</p>
-          </div>
-
-          <div className="rounded border border-gray-200 bg-gray-50 p-3">
-            <p>muskantanaz@gmail.com</p>
-          </div>
-
-          <div className="flex-1 rounded border border-gray-200 bg-gray-50 p-3">
-            <p>Bangladesh</p>
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-medium">Descriptions</h3>
-            <div className="rounded border border-gray-200 bg-gray-50 p-3">
-              <p className="text-sm text-gray-700">
-                We are a creative platform dedicated to showcasing original
-                artwork from talented artists around the world. From hand-drawn
-                sketches and digital illustrations to paintings, animations, and
-                mixed media, our goal is to connect art lovers with meaningful
-                visual experiences.
-              </p>
-            </div>
-          </div>
-
-          <button className="bg-primary hover:bg-primary/90 w-full rounded px-4 py-3 font-medium text-black transition">
-            Upload
-          </button>
-        </div>
-      </div>
-
-      {/* Password Section */}
-      <div className="mt-8 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
         <div>
-          <label htmlFor="current-password" className="mb-2 block font-medium">
-            Current Password
+          <label htmlFor="old-password" className="mb-2 block font-medium">
+            Old Password
           </label>
           <div className="relative">
             <input
-              id="current-password"
-              type={showCurrentPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              id="old-password"
+              type={showOldPassword ? "text" : "password"}
+              placeholder="Enter your old password"
               className="focus:ring-primary w-full rounded border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:outline-none"
+              {...register("oldPassword")}
             />
             <button
               type="button"
               className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500"
-              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              onClick={() => setShowOldPassword(!showOldPassword)}
             >
-              {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
+          {errors.oldPassword && (
+            <p className="mt-1 text-sm text-red-500">
+              {errors.oldPassword.message}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -94,8 +84,9 @@ export default function UserSettings() {
               <input
                 id="new-password"
                 type={showNewPassword ? "text" : "password"}
-                placeholder="Enter New password"
+                placeholder="Enter new password"
                 className="focus:ring-primary w-full rounded border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:outline-none"
+                {...register("newPassword")}
               />
               <button
                 type="button"
@@ -105,6 +96,11 @@ export default function UserSettings() {
                 {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {errors.newPassword && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.newPassword.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -120,6 +116,7 @@ export default function UserSettings() {
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm password"
                 className="focus:ring-primary w-full rounded border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:outline-none"
+                {...register("confirmPassword")}
               />
               <button
                 type="button"
@@ -129,13 +126,21 @@ export default function UserSettings() {
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
         </div>
 
-        <button className="bg-primary hover:bg-primary/90 mt-4 w-full rounded px-4 py-3 font-medium text-black transition">
-          Save
+        <button
+          type="submit"
+          className="bg-primary hover:bg-primary/90 mt-4 w-full rounded px-4 py-3 font-medium text-black transition"
+        >
+          {isLoading ? "Saving..." : "Save Changes"}
         </button>
-      </div>
+      </form>
     </div>
   )
 }

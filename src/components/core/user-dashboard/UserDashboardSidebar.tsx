@@ -1,6 +1,8 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { useAppDispatch, useAppSelector } from "@/redux/hooks"
+import { logOut, selectUser } from "@/redux/slices/authSlice"
 import {
   ImageIcon,
   LogOut,
@@ -12,6 +14,7 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 const buyerSidebarItems = [
   {
@@ -70,19 +73,22 @@ const sellerSidebarItems = [
 
 export default function UserDashboardSidebar() {
   const currentPath = usePathname()
-
+  const user = useAppSelector(selectUser)
   const [sidebarItems, setSidebarItems] = useState(buyerSidebarItems)
 
   useEffect(() => {
-    const userRole = sessionStorage.getItem("userRole")
-    if (userRole === "seller") {
+    if (user?.role === "seller") {
       setSidebarItems(sellerSidebarItems)
     } else {
       setSidebarItems(buyerSidebarItems)
     }
   }, [])
 
-  console.log({ sidebarItems })
+  const dispatch = useAppDispatch()
+  const handleLogout = () => {
+    dispatch(logOut())
+    toast.success("Logged out successfully")
+  }
 
   return (
     <div className="w-full rounded-2xl border bg-white shadow lg:w-1/4">
@@ -105,12 +111,13 @@ export default function UserDashboardSidebar() {
           </Link>
         ))}
 
-        <Link href="/">
-          <button className="flex w-full items-center rounded-md p-3 text-left text-gray-700 hover:bg-gray-100">
-            <LogOut className="mr-3 h-5 w-5" />
-            Log-out
-          </button>
-        </Link>
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center rounded-md p-3 text-left text-gray-700 hover:bg-gray-100"
+        >
+          <LogOut className="mr-3 h-5 w-5" />
+          Log-out
+        </button>
       </nav>
     </div>
   )

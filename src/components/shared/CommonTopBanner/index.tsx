@@ -49,7 +49,7 @@ export default function CommonTopBanner({
         />
 
         <div className="w-full space-y-3 px-10 text-center text-balance lg:w-3/4 lg:px-0 xl:w-[50%]">
-          <h3 className="text-2xl leading-normal font-bold text-white md:text-3xl xl:text-5xl xl:leading-relaxed">
+          <h3 className="text-card text-2xl leading-normal font-bold md:text-3xl xl:text-5xl xl:leading-relaxed">
             {heading}
           </h3>
 
