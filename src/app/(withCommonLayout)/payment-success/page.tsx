@@ -2,8 +2,8 @@
 
 import { CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { useDispatch } from "react-redux"
 import { clearCart } from "@/redux/slices/cartSlice"
 import { useGetPaymentQuery } from "@/redux/apis/orderApi"
@@ -12,9 +12,16 @@ import Image from "next/image"
 
 export default function PaymentSuccessPage() {
   const router = useRouter()
-  const params = useSearchParams()
+  const [paymentId, setPayment] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const paymentId = params.get("payment")
+      setPayment(paymentId)
+    }
+  }, [])
   const dispatch = useDispatch()
-  const paymentId = params.get("payment")
 
   // get payment data
   const { data, isLoading } = useGetPaymentQuery(paymentId)

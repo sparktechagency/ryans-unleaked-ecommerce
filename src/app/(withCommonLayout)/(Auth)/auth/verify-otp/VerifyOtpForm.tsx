@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useVerifyOtpMutation } from "@/redux/apis/authApi"
 import handleMutation from "@/utils/handleMutation"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Cookies from "js-cookie"
 
 const otpSchema = z.object({
@@ -72,9 +72,17 @@ export default function VerifyOtpForm() {
   }
 
   const [verifyOtp, { isLoading }] = useVerifyOtpMutation()
-  const params = useSearchParams()
+  const [redirect, setRedirect] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const redirectUrl = params.get("redirect")
+      setRedirect(redirectUrl)
+    }
+  }, [])
+
   const token = Cookies.get("forgotPassToken")
-  const redirect = params.get("redirect")
   const redirectUrl = redirect || "/auth/reset-password"
   const onSuccess = (res: any) => {
     if (res.success) {

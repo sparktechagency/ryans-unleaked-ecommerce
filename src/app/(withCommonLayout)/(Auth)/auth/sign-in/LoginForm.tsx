@@ -6,11 +6,11 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
 import { useSignInMutation } from "@/redux/apis/authApi"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import handleMutation from "@/utils/handleMutation"
 import { useAppDispatch } from "@/redux/hooks"
 import { setUser } from "@/redux/slices/authSlice"
@@ -44,8 +44,16 @@ export default function LoginForm() {
   // handle login and setting tokens
   const [login, { isLoading }] = useSignInMutation()
   const router = useRouter()
-  const params = useSearchParams()
-  const redirect = params.get("redirect")
+  const [redirect, setRedirect] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const redirectUrl = params.get("redirect")
+      setRedirect(redirectUrl)
+    }
+  }, [])
+
   const dispatch = useAppDispatch()
   const onSuccess = (res: any) => {
     const accessToken = res?.data?.accessToken

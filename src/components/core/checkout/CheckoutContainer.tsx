@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import ResponsiveContainer from "@/components/custom/ResponsiveContainer/ResponsiveContainer"
 import CommonTopBanner from "@/components/shared/CommonTopBanner"
 import { Button } from "@/components/ui/button"
@@ -18,8 +18,16 @@ import handleMutation from "@/utils/handleMutation"
 
 export default function CheckoutContainer() {
   const router = useRouter()
-  const params = useSearchParams()
-  const author = params.get("author")
+  const [author, setAuthor] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const author = params.get("author")
+      setAuthor(author)
+    }
+  }, [])
+
   const carts = useSelector((state: RootState) => state.cart.items)
 
   // Find selected author’s cart
