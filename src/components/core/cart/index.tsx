@@ -23,7 +23,6 @@ import { defaultImg } from "@/constants/global.constant"
 
 export default function CartContainer() {
   const carts = useSelector((state: RootState) => state.cart.items)
-  console.log("carts", carts)
   const dispatch = useDispatch()
 
   // Extract unique authors (remove duplicates by _id)

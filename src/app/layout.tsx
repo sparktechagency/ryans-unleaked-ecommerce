@@ -5,7 +5,6 @@ import "react-photo-view/dist/react-photo-view.css"
 import { Toaster } from "sonner"
 import TopLoader from "@/components/custom/TopLoader"
 import Providers from "@/components/providers/Providers"
-import CustomThemeProviders from "@/components/providers/CustomThemeProviders"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -40,12 +39,10 @@ export default function RootLayout({
       <body
         className={`${poppins.className} ${nunitoSans.variable} antialiased`}
       >
-        <CustomThemeProviders>
-          <Providers>{children}</Providers>
+        <Providers>{children}</Providers>
 
-          <Toaster richColors duration={4500} />
-          <TopLoader />
-        </CustomThemeProviders>
+        <Toaster richColors duration={4500} />
+        <TopLoader />
       </body>
     </html>
   )

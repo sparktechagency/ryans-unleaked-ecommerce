@@ -34,7 +34,6 @@ import { toast } from "sonner"
 import { useSelector } from "react-redux"
 import { RootState } from "@/redux/store"
 import { useGetUserProfileQuery } from "@/redux/apis/userApi"
-import ThemeToggle from "./ThemeToggle"
 
 const NAVBAR_LINKS = [
   {
@@ -190,7 +189,6 @@ export default function Navbar() {
                 </Badge>
               </Link>
             )}
-            <ThemeToggle />
             {user ? (
               userRole === "seller" ? (
                 <SellerProfileDropdown />
