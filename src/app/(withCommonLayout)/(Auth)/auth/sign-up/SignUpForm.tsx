@@ -12,6 +12,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { useSignUpMutation } from "@/redux/apis/authApi"
 import handleMutation from "@/utils/handleMutation"
 import { useRouter } from "next/navigation"
+import Cookies from "js-cookie"
 
 const signUpSchema = z
   .object({
@@ -56,7 +57,8 @@ export default function SignUpForm() {
     }
     handleMutation(payload, signUp, "Signing up...", (res: any) => {
       const token = res?.data?.otpToken?.token
-      router.push(`/auth/verify-otp?token=${token}&redirect=/auth/sign-in`)
+      Cookies.set("forgotPassToken", token)
+      router.push(`/auth/verify-otp?redirect=/auth/sign-in`)
     })
   }
 
