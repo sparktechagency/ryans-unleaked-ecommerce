@@ -1,27 +1,48 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { cn } from "@/lib/utils"
 import { Menu, Search, ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
-import logo from "@/assets/logos/logo.jpg"
+import { useState, useEffect } from "react"
+import logo from "@/assets/logos/logo.png"
 import { Input } from "@/components/ui/input"
 import NavLink from "./NavLink"
 import { useAppDispatch, useAppSelector } from "@/redux/hooks"
 import { logOut, selectUser } from "@/redux/slices/authSlice"
 import { toast } from "sonner"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { useGetProductsQuery } from "@/redux/apis/productApi"
 
-export default function MobileNavbar({}) {
+export default function MobileNavbar() {
   const [hideMobileMenu, setHideMobileMenu] = useState(true)
-  const [hideMobileSearchBar] = useState(true)
-  const user = useAppSelector(selectUser)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchResults, setSearchResults] = useState<any[]>([])
 
+  const user = useAppSelector(selectUser)
   const dispatch = useAppDispatch()
+
   const handleLogout = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
   }
+
+  const [searchTerm, setSearchTerm] = useState("")
+  const params = {
+    searchTerm,
+    limit: 5
+  }
+  const { data } = useGetProductsQuery(params, { skip: !searchTerm })
+  const searchedProducts = data?.data?.data
+  // Simulate search result
+  useEffect(() => {
+    if (searchTerm.length > 0) {
+      setSearchResults(searchedProducts)
+    } else {
+      setSearchResults([])
+    }
+  }, [searchTerm, searchedProducts])
 
   return (
     <div className={cn("transition-all duration-300 ease-in-out lg:hidden")}>
@@ -50,148 +71,95 @@ export default function MobileNavbar({}) {
 
         {/* right */}
         <div className="flex w-1/3 items-center justify-end gap-x-4 text-lg font-bold">
-          <div>
-            <div className="flex items-center gap-x-5">
-              <Link href="/cart">
-                <ShoppingCart className="text-xl" />
-              </Link>
+          <Link href="/cart">
+            <ShoppingCart className="text-xl" />
+          </Link>
+
+          <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <DialogTrigger asChild>
               <button>
                 <Search className="text-xl" />
               </button>
-            </div>
-
-            {/* search bar */}
-            {!hideMobileSearchBar && (
-              <div className="search-bar-container absolute top-12 left-16 z-[9999] w-3/4">
-                <div className="relative w-full">
-                  <Input
-                    id="navbar-search-input"
-                    placeholder="What are you looking for?"
-                    className="bg-foundation-black-light mx-auto h-12 w-[90%] pr-10 pl-4 font-medium"
-                    // onChange={(e) => dispatch(setSearch(e.target.value))}
-                  />
-                  <Search
-                    className="absolute top-1/2 right-[30px] -translate-y-1/2"
-                    size={20}
-                    role="button"
-                    // onClick={}
-                  />
-                </div>
+            </DialogTrigger>
+            <DialogContent className="p-3">
+              <div className="relative mb-0">
+                <Input
+                  placeholder="Search arts or artists"
+                  className="pr-4 pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Search
+                  className="text-primary absolute top-1/2 left-2 -translate-y-1/2"
+                  size={16}
+                />
               </div>
-            )}
-          </div>
-
-          {/* Buyer profile dropdown */}
-          {/* {userId && (
-            <DropdownMenu
-              onOpenChange={() => setHideMobileSearchBar(true)}
-              className=""
-            >
-              <DropdownMenuTrigger className="">
-                <Avatar>
-                  <AvatarImage src={showImage(user?.image)} />
-                  <AvatarFallback className="bg-primary-black font-bold text-white">
-                    {user?.name ? (
-                      user?.name?.firstName[0]?.toUpperCase()
-                    ) : (
-                      <User size={20} className="text-white" />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="z-[99999]">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link
-                    href="/user/profile"
-                    className="flex items-center gap-x-2"
-                  >
-                    <User size={15} /> Profile
-                  </Link>
-                </DropdownMenuItem>
-                {showCartWishlist && (
-                  <DropdownMenuItem>
-                    <Link href="/cart" className="flex items-center gap-x-2">
-                      <BsCart3 className="text-sm" /> Cart
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-
-                {showCartWishlist && (
-                  <DropdownMenuItem>
+              {searchResults?.length > 0 ? (
+                <div className="max-h-80 overflow-y-auto">
+                  {searchResults.map((item) => (
                     <Link
-                      href="/wishlist"
-                      className="flex items-center gap-x-2"
+                      key={item.id}
+                      href={`/advert/${item._id}`}
+                      className={`flex items-center gap-3 border-b py-2 hover:bg-gray-100`}
+                      onClick={() => setIsSearchOpen(false)}
                     >
-                      <BsHeart className="text-sm" /> Wishlist
+                      <div
+                        className="h-[40px] w-[45px] rounded-md bg-cover bg-center"
+                        style={{ backgroundImage: `url(${item.image})` }}
+                      />
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium text-black">
+                          {item.title.length > 22
+                            ? `${item.title.slice(0, 22)}...`
+                            : item.title}
+                        </p>
+                        <span className="text-muted-foreground text-xs">
+                          {item.price}
+                        </span>
+                      </div>
                     </Link>
-                  </DropdownMenuItem>
-                )}
-
-                <DropdownMenuItem>
-                  <Link
-                    href="/user/settings"
-                    className="flex items-center gap-x-2"
-                  >
-                    <Settings size={15} /> Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link
-                    href="/user/order-history"
-                    className="flex items-center gap-x-2"
-                  >
-                    <List size={15} />
-                    Order History
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <button
-                    className="flex items-center gap-x-2"
-                    onClick={handleLogout}
-                  >
-                    <LogOut size={15} />
-                    Logout
-                  </button>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )} */}
+                  ))}
+                </div>
+              ) : (
+                searchTerm && (
+                  <p className="text-muted-foreground px-4 text-sm">
+                    No results found
+                  </p>
+                )
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       {/* Mobile Menu Links */}
       <div className="absolute top-[80px] left-0 z-[9999] h-auto w-full">
         {!hideMobileMenu && (
-          <div>
-            <ul className="flex list-none flex-col items-start gap-y-6 border-b border-b-gray-300 bg-white px-4 py-7">
-              <li>
-                <NavLink route="/">Home</NavLink>
-              </li>
-              <li>
-                <NavLink route="/upload">Upload</NavLink>
-              </li>
-              <li>
-                <NavLink route="/artists">Artists</NavLink>
-              </li>
-
-              {user ? (
-                <>
-                  <li>
-                    <NavLink route="/user/dashboard">Profile</NavLink>
-                  </li>
-                  <li onClick={handleLogout}>
-                    <NavLink route="#">Logout</NavLink>
-                  </li>
-                </>
-              ) : (
+          <ul className="flex list-none flex-col items-start gap-y-6 border-b border-b-gray-300 bg-white px-4 py-7">
+            <li>
+              <NavLink route="/">Home</NavLink>
+            </li>
+            <li>
+              <NavLink route="/upload">Upload</NavLink>
+            </li>
+            <li>
+              <NavLink route="/artists">Artists</NavLink>
+            </li>
+            {user ? (
+              <>
                 <li>
-                  <NavLink route="/auth/sign-up">Login</NavLink>
+                  <NavLink route="/user/dashboard">Profile</NavLink>
                 </li>
-              )}
-            </ul>
-          </div>
+                <li onClick={handleLogout}>
+                  <NavLink route="#">Logout</NavLink>
+                </li>
+              </>
+            ) : (
+              <li>
+                <NavLink route="/auth/sign-up">Login</NavLink>
+              </li>
+            )}
+          </ul>
         )}
       </div>
     </div>

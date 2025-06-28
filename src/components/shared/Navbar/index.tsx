@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import ResponsiveContainer from "@/components/custom/ResponsiveContainer/ResponsiveContainer"
 import Image from "next/image"
 import Link from "next/link"
-import logo from "@/assets/logos/logo.jpg"
+import logo from "@/assets/logos/logo.png"
 import { Input } from "@/components/ui/input"
 import {
   ChevronDown,
@@ -34,40 +35,23 @@ import { toast } from "sonner"
 import { useSelector } from "react-redux"
 import { RootState } from "@/redux/store"
 import { useGetUserProfileQuery } from "@/redux/apis/userApi"
+import { useState, useEffect, useRef } from "react"
+import { useGetProductsQuery } from "@/redux/apis/productApi"
 
 const NAVBAR_LINKS = [
-  {
-    label: "Home",
-    route: "/"
-  },
-  {
-    label: "Artists",
-    route: "/artists"
-  },
-  {
-    label: "Upload",
-    route: "/upload"
-  },
-  {
-    label: "Featured",
-    dropdownLinks: [
-      {
-        label: "Holiday"
-      },
-      {
-        label: "Christmas"
-      },
-      {
-        label: "New Year"
-      },
-      {
-        label: "Birthday"
-      },
-      {
-        label: "Others"
-      }
-    ]
-  }
+  { label: "Home", route: "/" },
+  { label: "Artists", route: "/artists" },
+  { label: "Upload", route: "/upload" }
+  // {
+  //   label: "Featured",
+  //   dropdownLinks: [
+  //     { label: "Holiday" },
+  //     { label: "Christmas" },
+  //     { label: "New Year" },
+  //     { label: "Birthday" },
+  //     { label: "Others" }
+  //   ]
+  // }
 ]
 
 export default function Navbar() {
@@ -77,11 +61,44 @@ export default function Navbar() {
     carts?.reduce((acc, group) => acc + group?.items?.length, 0) || 0
   const pathname = usePathname()
   const userRole = user?.role
-  // Set user role in session storage
+
+  const [searchTerm, setSearchTerm] = useState("")
+  const params = {
+    searchTerm,
+    limit: 5
+  }
+  const { data } = useGetProductsQuery(params, { skip: !searchTerm })
+  const searchedProducts = data?.data?.data
+
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setSearchTerm("")
+        setSearchResults([])
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    if (searchTerm.length > 0) {
+      setSearchResults(searchedProducts)
+    } else {
+      setSearchResults([])
+    }
+  }, [searchedProducts, searchTerm])
 
   return (
     <ResponsiveContainer className="py-4">
-      <div className="hidden items-center justify-between text-center lg:flex lg:gap-x-7 2xl:gap-x-9">
+      <div className="hidden items-center justify-between lg:flex">
         <Link href="/" className="block w-auto">
           <Image
             src={logo}
@@ -92,33 +109,61 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* --------------------- Search Bar --------------------- */}
-        <div className="relative h-10 w-1/2 lg:w-1/3">
+        {/* Search */}
+        <div ref={searchRef} className="relative h-10 w-1/2 lg:w-1/3">
           <Search
-            className="text-primary-foreground absolute top-1/2 left-2 -translate-y-1/2"
+            className="text-primary absolute top-1/2 left-2 -translate-y-1/2"
             size={16}
-            role="button"
           />
-
           <Input
-            id="navbar-search-input"
             placeholder="Search arts or artists"
-            className="border-primary h-full w-full border bg-transparent pr-24 pl-8 shadow-none focus-visible:ring-0"
-            // onChange={(e) => dispatch(setSearch(e.target.value))}
-            // onKeyDown={(e) => {
-            //   if (e.key === "Enter") handleDesktopSearch() // navigate to `/all-product` when clicked `enter`
-            // }}
+            className="border-primary h-full w-full border bg-transparent pr-24 pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-
           <Button className="absolute inset-y-0 right-0 h-full rounded-l-none">
             Search
           </Button>
+
+          {searchTerm && (
+            <div className="absolute z-50 mt-2 max-h-80 w-full overflow-y-auto rounded-md border bg-white shadow-md">
+              {searchResults && searchResults.length > 0 ? (
+                searchResults.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/advert/${item._id}`}
+                    className="flex items-center gap-3 border-b px-4 py-3 hover:bg-gray-100"
+                  >
+                    <div
+                      className="h-[35px] w-[43px] rounded-md bg-cover bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${item.image})` }}
+                    />
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-black">
+                        {item.title.length > 55
+                          ? `${item.title.slice(0, 55)}...`
+                          : item.title}
+                      </p>
+                      <span className="text-muted-foreground text-xs">
+                        ${item.price}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-muted-foreground px-4 py-3 text-sm">
+                  No result found
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* --------------------- Navbar Links --------------------- */}
-        <div className="flex items-center gap-x-10">
+        <div className="flex items-center gap-x-6">
           <div className="flex items-center gap-x-6">
-            {NAVBAR_LINKS?.map((item) => {
+            {NAVBAR_LINKS.map((item) => {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               if (!item.dropdownLinks) {
                 return (
                   <NavLink key={item.route} route={item.route}>
@@ -126,17 +171,10 @@ export default function Navbar() {
                   </NavLink>
                 )
               }
-
               return (
-                <DropdownMenu key={item.route}>
-                  <DropdownMenuTrigger
-                    className={`flex items-center gap-x-1 !border-0 font-medium !outline-0 data-[state=open]:[&_svg]:rotate-180`}
-                  >
-                    {item.label}{" "}
-                    <ChevronDown
-                      size={16}
-                      className="transition-all duration-300"
-                    />
+                <DropdownMenu key={item.label}>
+                  <DropdownMenuTrigger className="flex items-center gap-x-1">
+                    {item.label} <ChevronDown size={16} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     side="bottom"
@@ -144,6 +182,8 @@ export default function Navbar() {
                     align="center"
                     className="w-48"
                   >
+                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                    {/* @ts-ignore */}
                     {item.dropdownLinks.map((link) => (
                       <DropdownMenuItem key={link.label}>
                         {link.label}
@@ -156,35 +196,12 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-x-6">
-            {user && (
-              <>
-                {/* {userRole === "buyer" ? (
-                  <button
-                    type="button"
-                    className="text-primary"
-                    onClick={() => setUserRole("seller")}
-                  >
-                    Switch to Selling
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="text-primary"
-                    onClick={() => setUserRole("buyer")}
-                  >
-                    Switch to Buying
-                  </button>
-                )} */}
-              </>
-            )}
-
             {userRole !== "seller" && (
               <Link href="/cart" className="relative">
                 <ShoppingCart
-                  className={`${pathname === "/cart" ? "text-primary-orange" : "text-black"} text-2xl`}
+                  className={`text-2xl ${pathname === "/cart" ? "text-primary-orange" : "text-black"}`}
                 />
-
-                <Badge className="bg-primary absolute -top-2 -right-[10px] flex aspect-square size-5 items-center justify-center rounded-full text-white">
+                <Badge className="bg-primary absolute -top-2 -right-[10px] size-5 rounded-full text-white">
                   <p className="text-xs">{totalCartItems}</p>
                 </Badge>
               </Link>
@@ -196,7 +213,7 @@ export default function Navbar() {
                 <BuyerProfileDropdown />
               )
             ) : (
-              <Link href={"/auth/sign-in"}>
+              <Link href="/auth/sign-in">
                 <Button>Sign In</Button>
               </Link>
             )}
@@ -215,7 +232,6 @@ const BuyerProfileDropdown = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
   }
-
   const { data } = useGetUserProfileQuery("")
   const user = data?.data
 
@@ -224,14 +240,12 @@ const BuyerProfileDropdown = () => {
       <DropdownMenuTrigger className="!border-0 !outline-0">
         <CustomAvatar name="Uzzal Bhowmik" img={user?.profile} size={36} />
       </DropdownMenuTrigger>
-
       <DropdownMenuContent className="w-48" align="end" sideOffset={10}>
         <DropdownMenuItem asChild>
           <Link href="/user/dashboard" className="flex items-center gap-x-2">
             <LayoutDashboard size={15} /> Dashboard
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link
             href="/user/order-history"
@@ -240,27 +254,22 @@ const BuyerProfileDropdown = () => {
             <Repeat2 size={15} /> Order History
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link href="/cart" className="flex items-center gap-x-2">
             <ShoppingCart size={15} /> Shopping Cart
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link href="/user/settings" className="flex items-center gap-x-2">
-            <Settings size={15} />
-            Settings
+            <Settings size={15} /> Settings
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-x-2"
           >
-            <LogOut size={15} />
-            Logout
+            <LogOut size={15} /> Logout
           </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -274,7 +283,6 @@ const SellerProfileDropdown = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
   }
-
   const { data } = useGetUserProfileQuery("")
   const user = data?.data
 
@@ -283,20 +291,17 @@ const SellerProfileDropdown = () => {
       <DropdownMenuTrigger className="!border-0 !outline-0">
         <CustomAvatar name="Uzzal Bhowmik" img={user?.profile} size={36} />
       </DropdownMenuTrigger>
-
       <DropdownMenuContent className="w-48" align="end" sideOffset={10}>
         <DropdownMenuItem asChild>
           <Link href="/user/dashboard" className="flex items-center gap-x-2">
             <LayoutDashboard size={15} /> Dashboard
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link href="/user/feed" className="flex items-center gap-x-2">
             <ImageIcon size={15} /> My Feed
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link
             href="/user/selling-history"
@@ -305,21 +310,17 @@ const SellerProfileDropdown = () => {
             <History size={15} /> Selling History
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link href="/user/settings" className="flex items-center gap-x-2">
-            <Settings size={15} />
-            Settings
+            <Settings size={15} /> Settings
           </Link>
         </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <button
             className="flex w-full items-center gap-x-2"
             onClick={handleLogout}
           >
-            <LogOut size={15} />
-            Logout
+            <LogOut size={15} /> Logout
           </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
