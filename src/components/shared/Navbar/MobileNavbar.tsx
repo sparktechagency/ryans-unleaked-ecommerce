@@ -14,6 +14,7 @@ import { logOut, selectUser } from "@/redux/slices/authSlice"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useGetProductsQuery } from "@/redux/apis/productApi"
+import { usePathname, useRouter } from "next/navigation"
 
 export default function MobileNavbar() {
   const [hideMobileMenu, setHideMobileMenu] = useState(true)
@@ -22,10 +23,13 @@ export default function MobileNavbar() {
 
   const user = useAppSelector(selectUser)
   const dispatch = useAppDispatch()
+  const router = useRouter()
+  const currentPath = usePathname()
 
   const handleLogout = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
+    router.push(`/auth/sign-in?redirect=${currentPath}`)
   }
 
   const [searchTerm, setSearchTerm] = useState("")

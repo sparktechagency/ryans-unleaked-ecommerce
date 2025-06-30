@@ -63,8 +63,15 @@ const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       providesTags: ["banners"]
+    }),
+    connectStripe: builder.mutation({
+      query: () => ({
+        url: "/stripe/connect",
+        method: "PATCH"
+      }),
+      invalidatesTags: ["auth"]
     })
   }),
 })
 
-export const { useSignInMutation, useSignUpMutation, useVerifyOtpMutation, useResetPasswordMutation, useChangePasswordMutation, useForgotPasswordMutation, useGetAuthBannersQuery } = authApi;
+export const { useSignInMutation, useSignUpMutation, useVerifyOtpMutation, useResetPasswordMutation, useChangePasswordMutation, useForgotPasswordMutation, useGetAuthBannersQuery, useConnectStripeMutation } = authApi;

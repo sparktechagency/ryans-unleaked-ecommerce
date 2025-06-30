@@ -22,6 +22,8 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import handleMutation from "@/utils/handleMutation"
+import { useGetUserProfileQuery } from "@/redux/apis/userApi"
+import ConnectStripeModal from "@/app/(withCommonLayout)/(Auth)/auth/sign-in/ConnectStripeModal"
 
 const productSchema = z.object({
   title: z.string().min(3, "Title is required"),
@@ -36,6 +38,15 @@ const productSchema = z.object({
 type ProductFormType = z.infer<typeof productSchema>
 
 export default function UploadForm() {
+  const { data: profileData } = useGetUserProfileQuery("")
+  const [showAlert, setShowAlert] = useState(false)
+  const isStripeConnected = profileData?.data?.stripeAccountId
+  const handleStripeConnect = () => {
+    if (!isStripeConnected) {
+      setShowAlert(true)
+    }
+  }
+
   const { data: categoriesData, isLoading: categoriesLoading } =
     useGetCategoriesQuery("")
   const categories = categoriesData?.data?.data || []
@@ -99,169 +110,190 @@ export default function UploadForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="mx-auto max-w-full space-y-6 px-10 md:max-w-3/4 lg:px-0 xl:max-w-1/2"
-    >
-      <div className="space-y-2">
-        <label
-          htmlFor="title"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Arts Title
-        </label>
-        <Input
-          id="title"
-          {...register("title")}
-          placeholder="Creative and detail-oriented Drawing Artist..."
-          className="w-full bg-gray-50"
-        />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+    <>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mx-auto max-w-full space-y-6 px-10 md:max-w-3/4 lg:px-0 xl:max-w-1/2"
+      >
         <div className="space-y-2">
           <label
-            htmlFor="category"
+            htmlFor="title"
             className="block text-sm font-medium text-gray-700"
           >
-            Categories
+            Arts Title
           </label>
-          {categoriesLoading ? (
-            <p>Loading categories...</p>
-          ) : (
-            <Controller
-              name="category"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || ""}
-                  defaultValue=""
-                >
-                  <SelectTrigger className="w-full bg-gray-50">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat: any) => (
-                      <SelectItem key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+          <Input
+            id="title"
+            {...register("title")}
+            placeholder="Creative and detail-oriented Drawing Artist..."
+            className="w-full bg-gray-50"
+          />
+          {errors.title && (
+            <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
           )}
-          {errors.category && (
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Categories
+            </label>
+            {categoriesLoading ? (
+              <p>Loading categories...</p>
+            ) : (
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || ""}
+                    defaultValue=""
+                  >
+                    <SelectTrigger className="w-full bg-gray-50">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat: any) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            )}
+            {errors.category && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.category.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Arts Price
+            </label>
+            <Input
+              id="price"
+              {...register("price")}
+              className="w-full bg-gray-50"
+              inputMode="numeric"
+              placeholder="$120"
+            />
+            {errors.price && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.price.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Descriptions
+          </label>
+          <Textarea
+            id="description"
+            {...register("description")}
+            className="min-h-[200px] w-full bg-gray-50"
+            placeholder="Write about your art..."
+          />
+          {errors.description && (
             <p className="mt-1 text-sm text-red-500">
-              {errors.category.message}
+              {errors.description.message}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="price"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Arts Price
+          <label className="block text-sm font-medium text-gray-700">
+            Image Upload
           </label>
-          <Input
-            id="price"
-            {...register("price")}
-            className="w-full bg-gray-50"
-            inputMode="numeric"
-            placeholder="$120"
-          />
-          {errors.price && (
-            <p className="mt-1 text-sm text-red-500">{errors.price.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Descriptions
-        </label>
-        <Textarea
-          id="description"
-          {...register("description")}
-          className="min-h-[200px] w-full bg-gray-50"
-          placeholder="Write about your art..."
-        />
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors.description.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Image Upload
-        </label>
-        <div
-          className="cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center"
-          onClick={onUploadClick}
-          onDragOver={onDragOver}
-          onDrop={onDrop}
-        >
-          {previewUrl ? (
-            <div className="relative mx-auto h-auto w-[350px]">
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                className="mx-auto max-h-full object-cover"
-                height={350}
-                width={350}
-              />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setImage(null)
-                  setPreviewUrl(null)
-                  if (fileInputRef.current) fileInputRef.current.value = ""
-                }}
-                className="absolute top-2 right-2 rounded-full bg-white p-1.5 shadow-md transition-colors hover:bg-gray-100"
-              >
-                ✕
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <div className="rounded-full bg-gray-100 p-3">
-                <Upload className="h-6 w-6 text-gray-500" />
+          <div
+            className="cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center"
+            onClick={onUploadClick}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+          >
+            {previewUrl ? (
+              <div className="relative mx-auto h-auto w-[350px]">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  className="mx-auto max-h-full object-cover"
+                  height={350}
+                  width={350}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setImage(null)
+                    setPreviewUrl(null)
+                    if (fileInputRef.current) fileInputRef.current.value = ""
+                  }}
+                  className="absolute top-2 right-2 rounded-full bg-white p-1.5 shadow-md transition-colors hover:bg-gray-100"
+                >
+                  ✕
+                </button>
               </div>
-              <span className="text-sm font-medium text-gray-700">
-                Upload Image
-              </span>
-              <span className="text-xs text-gray-500">or drag and drop</span>
-            </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={onImageChange}
-            className="hidden"
-          />
+            ) : (
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <div className="rounded-full bg-gray-100 p-3">
+                  <Upload className="h-6 w-6 text-gray-500" />
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  Upload Image
+                </span>
+                <span className="text-xs text-gray-500">or drag and drop</span>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              className="hidden"
+            />
+          </div>
         </div>
-      </div>
 
-      <Button
-        type="submit"
-        className="h-12 w-full bg-amber-400 font-medium text-black hover:bg-amber-500"
-        disabled={isUploading}
-      >
-        {isUploading ? "Uploading..." : "Upload Now"}
-      </Button>
-    </form>
+        {isStripeConnected && (
+          <Button
+            type="submit"
+            className="h-12 w-full bg-amber-400 font-medium text-black hover:bg-amber-500"
+            disabled={isUploading}
+          >
+            {isUploading ? "Uploading..." : "Upload Now"}
+          </Button>
+        )}
+      </form>
+      {!isStripeConnected && (
+        <div className="mx-auto mt-6 max-w-full space-y-6 px-10 md:max-w-3/4 lg:px-0 xl:max-w-1/2">
+          <Button
+            onClick={handleStripeConnect}
+            className="h-12 w-full bg-amber-400 font-medium text-black hover:bg-amber-500"
+          >
+            Upload Now
+          </Button>
+        </div>
+      )}
+      <ConnectStripeModal
+        title="Connect your Stripe account first!"
+        showAlert={showAlert}
+        setShowAlert={setShowAlert}
+      />
+    </>
   )
 }

@@ -12,7 +12,7 @@ import {
   LucideShoppingCart
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -73,6 +73,7 @@ const sellerSidebarItems = [
 
 export default function UserDashboardSidebar() {
   const currentPath = usePathname()
+  const router = useRouter()
   const user = useAppSelector(selectUser)
   const [sidebarItems, setSidebarItems] = useState(buyerSidebarItems)
 
@@ -88,6 +89,7 @@ export default function UserDashboardSidebar() {
   const handleLogout = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
+    router.push(`/auth/sign-in?redirect=${currentPath}`)
   }
 
   return (

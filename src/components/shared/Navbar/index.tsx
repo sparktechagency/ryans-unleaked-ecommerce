@@ -18,7 +18,7 @@ import {
   ShoppingCart
 } from "lucide-react"
 import NavLink from "./NavLink"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
@@ -227,10 +227,13 @@ export default function Navbar() {
 }
 
 const BuyerProfileDropdown = () => {
+  const currentPath = usePathname()
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const handleLogout = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
+    router.push(`/auth/sign-in?redirect=${currentPath}`)
   }
   const { data } = useGetUserProfileQuery("")
   const user = data?.data
@@ -278,10 +281,13 @@ const BuyerProfileDropdown = () => {
 }
 
 const SellerProfileDropdown = () => {
+  const currentPath = usePathname()
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const handleLogout = () => {
     dispatch(logOut())
     toast.success("Logged out successfully")
+    router.push(`/auth/sign-in?redirect=${currentPath}`)
   }
   const { data } = useGetUserProfileQuery("")
   const user = data?.data
