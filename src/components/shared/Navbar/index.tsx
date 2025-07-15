@@ -38,20 +38,9 @@ import { useGetUserProfileQuery } from "@/redux/apis/userApi"
 import { useState, useEffect, useRef } from "react"
 import { useGetProductsQuery } from "@/redux/apis/productApi"
 
-const NAVBAR_LINKS = [
+let NAVBAR_LINKS = [
   { label: "Home", route: "/" },
-  { label: "Artists", route: "/artists" },
-  { label: "Upload", route: "/upload" }
-  // {
-  //   label: "Featured",
-  //   dropdownLinks: [
-  //     { label: "Holiday" },
-  //     { label: "Christmas" },
-  //     { label: "New Year" },
-  //     { label: "Birthday" },
-  //     { label: "Others" }
-  //   ]
-  // }
+  { label: "Artists", route: "/artists" }
 ]
 
 export default function Navbar() {
@@ -61,6 +50,14 @@ export default function Navbar() {
     carts?.reduce((acc, group) => acc + group?.items?.length, 0) || 0
   const pathname = usePathname()
   const userRole = user?.role
+
+  if (userRole && userRole === "seller") {
+    NAVBAR_LINKS = [
+      { label: "Home", route: "/" },
+      { label: "Artists", route: "/artists" },
+      { label: "Upload", route: "/upload" }
+    ]
+  }
 
   const [searchTerm, setSearchTerm] = useState("")
   const params = {

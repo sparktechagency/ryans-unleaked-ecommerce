@@ -43,7 +43,9 @@ const handleMutation = async (
       id: toastId,
       duration: 2500,
     });
-    console.log("api error: ", error);
+    if (process.env.NEXT_PUBLIC_APP_ENV === "development") {
+      console.log("Mutation error: ", error);
+    }
     if (typeof onFailure === "function") {
       onFailure(error);
     }

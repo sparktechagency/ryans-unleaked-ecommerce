@@ -143,9 +143,11 @@ export default function MobileNavbar() {
             <li>
               <NavLink route="/">Home</NavLink>
             </li>
-            <li>
-              <NavLink route="/upload">Upload</NavLink>
-            </li>
+            {user?.role === "seller" && (
+              <li>
+                <NavLink route="/upload">Upload</NavLink>
+              </li>
+            )}
             <li>
               <NavLink route="/artists">Artists</NavLink>
             </li>
