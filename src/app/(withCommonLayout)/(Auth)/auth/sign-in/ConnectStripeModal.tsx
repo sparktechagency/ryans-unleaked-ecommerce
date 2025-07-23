@@ -30,7 +30,16 @@ const ConnectStripeModal = ({
     })
   }
   return (
-    <Dialog open={showAlert} onOpenChange={setShowAlert}>
+    <Dialog
+      open={showAlert}
+      onOpenChange={(open) => {
+        setShowAlert(open)
+        if (!open) {
+          console.log("Modal closed")
+          router.push("/")
+        }
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title || "Set up Stripe to get paid 💸"}</DialogTitle>

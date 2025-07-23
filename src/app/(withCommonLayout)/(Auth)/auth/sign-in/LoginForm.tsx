@@ -15,8 +15,6 @@ import handleMutation from "@/utils/handleMutation"
 import { useAppDispatch } from "@/redux/hooks"
 import { setUser } from "@/redux/slices/authSlice"
 
-import ConnectStripeModal from "./ConnectStripeModal"
-
 // Zod schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -36,10 +34,8 @@ export default function LoginForm() {
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "dayey52687@calorpg.com",
-      password: "1122323"
-      // email: "mofas74777@kimdyn.com",
-      // password: "mofas74777"
+      email: "junayednoman05@gmail.com",
+      password: "junayednoman05"
     }
   })
 
@@ -47,7 +43,6 @@ export default function LoginForm() {
   const [login, { isLoading }] = useSignInMutation()
   const router = useRouter()
   const [redirect, setRedirect] = useState<string | null>(null)
-  const [showAlert, setShowAlert] = useState(false)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -75,12 +70,7 @@ export default function LoginForm() {
           refreshToken
         })
       )
-
-      if (userData?.role === "seller" && res?.data?.stripeAccountId == null) {
-        setShowAlert(true)
-      } else {
-        router.push(redirect || "/")
-      }
+      router.push(`${redirect}?ref=login` || "/?ref=login")
     }
   }
   const onSubmit = (data: LoginData) => {
@@ -207,7 +197,6 @@ export default function LoginForm() {
         </button>
       </div> */}
       </form>
-      <ConnectStripeModal showAlert={showAlert} setShowAlert={setShowAlert} />
     </>
   )
 }

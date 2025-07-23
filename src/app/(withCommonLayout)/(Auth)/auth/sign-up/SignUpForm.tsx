@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
@@ -13,13 +13,23 @@ import { useSignUpMutation } from "@/redux/apis/authApi"
 import handleMutation from "@/utils/handleMutation"
 import { useRouter } from "next/navigation"
 import Cookies from "js-cookie"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 
 const signUpSchema = z
   .object({
     fullName: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6, "Confirm your password")
+    confirmPassword: z.string().min(6, "Confirm your password"),
+    role: z.enum(["buyer", "seller"], {
+      errorMap: () => ({ message: "Please select a role" })
+    })
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -33,14 +43,16 @@ export default function SignUpForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors }
   } = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      fullName: "Lihofic",
-      email: "lihofic260@ihnpo.com",
-      password: "lihofic260",
-      confirmPassword: "lihofic260"
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: undefined
     }
   })
 
@@ -54,7 +66,8 @@ export default function SignUpForm() {
       name: data.fullName,
       email: data.email,
       password: data.password
-    }
+    } as any
+    if (data.role === "seller") payload["role"] = "seller"
     handleMutation(payload, signUp, "Signing up...", (res: any) => {
       const token = res?.data?.otpToken?.token
       Cookies.set("forgotPassToken", token)
@@ -68,6 +81,31 @@ export default function SignUpForm() {
       className="mx-auto w-full space-y-6 rounded-lg bg-white sm:border sm:p-8 sm:shadow-md"
     >
       <h2 className="text-xl font-semibold text-gray-700">Sign Up</h2>
+
+      {/* Role (ShadCN Select) */}
+      <div className="roleSelect w-full space-y-1">
+        <label htmlFor="role" className="text-sm font-medium text-gray-700">
+          Select Role
+        </label>
+        <Controller
+          name="role"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="buyer">Buyer</SelectItem>
+                <SelectItem value="seller">Seller</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {errors.role && (
+          <p className="text-sm text-red-500">{errors.role.message}</p>
+        )}
+      </div>
 
       {/* Full Name */}
       <div className="space-y-1">
@@ -177,25 +215,6 @@ export default function SignUpForm() {
           </Link>
         </p>
       </div>
-
-      {/* Divider */}
-      {/* <div className="flex items-center justify-center space-x-4">
-        <hr className="w-full border-t border-gray-300" />
-        <span className="w-[230px] text-center text-sm text-gray-400">
-          Or, Log in with
-        </span>
-        <hr className="w-full border-t border-gray-300" />
-      </div> */}
-
-      {/* Social Buttons */}
-      {/* <div className="flex justify-center space-x-4">
-        <button type="button" className="flex items-center space-x-2">
-          <Image src={googleImg} width={30} height={30} alt="Google" />
-        </button>
-        <button type="button" className="flex items-center space-x-2">
-          <Image src={appleImg} width={30} height={30} alt="Apple" />
-        </button>
-      </div> */}
     </form>
   )
 }

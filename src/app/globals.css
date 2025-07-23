@@ -175,3 +175,7 @@
 button {
   cursor: pointer;
 }
+
+.roleSelect button {
+  width: 100%;
+}

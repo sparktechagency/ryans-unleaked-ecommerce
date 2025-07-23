@@ -9,13 +9,18 @@ import { TProduct } from "@/interface/product.interface"
 import ProductCardSkeleton from "@/components/dataFetching/skeletons/ProductCardSkeleton"
 import ErrorMessage from "@/components/dataFetching/ErrorMessage"
 import { useEffect, useState } from "react"
+import { useGetUserProfileQuery } from "@/redux/apis/userApi"
+import ConnectStripeModal from "@/app/(withCommonLayout)/(Auth)/auth/sign-in/ConnectStripeModal"
 
 export default function Adverts() {
   const [priceRanges, setPriceRanges] = useState<number[]>([0, 10000])
   const [selectedCategory, setSelectedCategory] = useState("")
+  const [showAlert, setShowAlert] = useState(false)
   const pageSize = 5
   const [limit, setLimit] = useState(pageSize)
-
+  const { data: userData } = useGetUserProfileQuery("")
+  const user = userData?.data
+  console.log("user", user)
   const priceRange = `${priceRanges[0]}-${priceRanges[1]}`
 
   const params = {
@@ -29,6 +34,19 @@ export default function Adverts() {
     useGetProductsQuery(params)
   const products = data?.data?.data
   const meta = data?.data?.meta
+
+  useEffect(() => {
+    const fullUrl = typeof window !== "undefined" ? window.location.href : ""
+
+    if (
+      fullUrl.includes("ref=login") &&
+      user?.role === "seller" &&
+      !user?.stripeAccountId
+    ) {
+      setShowAlert(true)
+      // window.location.href = "/"
+    }
+  }, [user])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -103,6 +121,7 @@ export default function Adverts() {
           )}
         </div>
       )}
+      <ConnectStripeModal showAlert={showAlert} setShowAlert={setShowAlert} />
     </ResponsiveContainer>
   )
 }
