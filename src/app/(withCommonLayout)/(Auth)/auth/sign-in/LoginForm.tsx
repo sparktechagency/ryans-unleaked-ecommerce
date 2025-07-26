@@ -33,10 +33,6 @@ export default function LoginForm() {
     formState: { errors }
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "junayednoman05@gmail.com",
-      password: "junayednoman05"
-    }
   })
 
   // handle login and setting tokens

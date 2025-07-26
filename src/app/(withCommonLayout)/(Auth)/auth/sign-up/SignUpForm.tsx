@@ -46,14 +46,7 @@ export default function SignUpForm() {
     control,
     formState: { errors }
   } = useForm<SignUpData>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      role: undefined
-    }
+    resolver: zodResolver(signUpSchema)
   })
 
   const [showPassword, setShowPassword] = useState(false)
